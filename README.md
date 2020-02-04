@@ -1,4 +1,4 @@
-## RTC_DS1307
+## RTC_DS1307  [![Build Status](https://travis-ci.com/Seeed-Studio/RTC_DS1307.svg?branch=master)](https://travis-ci.com/Seeed-Studio/RTC_DS1307)
 
 ![](https://statics3.seeedstudio.com/images/101020013%201.jpg)
 
