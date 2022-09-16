@@ -50,6 +50,7 @@ class DS1307 {
 
   public:
     void begin();
+    void begin(uint16_t SDA ,uint16_t SCL);
     void startClock(void);
     void stopClock(void);
     void setTime(void);

@@ -43,6 +43,18 @@ uint8_t DS1307::bcdToDec(uint8_t val) {
 void DS1307::begin() {
     Wire.begin();
 }
+
+/**
+ * \brief          The functio to start the I2C port with specified pins
+ *                 
+ * \param SDA      The pin number which is used as SDA pin
+ * \param SCL      The pin number which is used as SCL pin
+ *
+ */
+void DS1307::begin(uint16_t SDA ,uint16_t SCL) {
+    Wire.begin(SDA,SCL);
+}
+
 /*Function: The clock timing will start */
 void DS1307::startClock(void) {      // set the ClockHalt bit low to start the rtc
     Wire.beginTransmission(DS1307_I2C_ADDRESS);
