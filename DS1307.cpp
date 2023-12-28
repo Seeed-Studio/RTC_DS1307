@@ -44,17 +44,6 @@ void DS1307::begin() {
     Wire.begin();
 }
 
-/**
- * \brief          The functio to start the I2C port with specified pins
- *                 
- * \param SDA      The pin number which is used as SDA pin
- * \param SCL      The pin number which is used as SCL pin
- *
- */
-void DS1307::begin(uint16_t SDA ,uint16_t SCL) {
-    Wire.begin(SDA,SCL);
-}
-
 /*Function: The clock timing will start */
 void DS1307::startClock(void) {      // set the ClockHalt bit low to start the rtc
     Wire.beginTransmission(DS1307_I2C_ADDRESS);
@@ -125,3 +114,52 @@ void DS1307::fillDayOfWeek(uint8_t _dow) {
     dayOfWeek = _dow;
 }
 
+void DS1307::setRamAddress(uint8_t _addr, uint8_t _value) {
+    uint8_t address = _addr + DS1307_RAM_OFFSET;
+
+    ram[_addr] = _value;
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write(address);
+    Wire.write(_value);
+    Wire.endTransmission();
+
+}
+
+void DS1307::setRam(){
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write(0x08);
+    for (uint8_t pos = 0; pos < 55; ++pos) {
+        Wire.write(ram[pos]);
+    }
+    Wire.endTransmission();
+}
+
+uint8_t DS1307::getRamAddress(uint8_t _addr) {
+    uint8_t address = _addr + DS1307_RAM_OFFSET;
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write(address);
+    Wire.endTransmission();
+
+    Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+    ram[_addr] = Wire.read();
+    return ram[_addr];
+}
+
+void DS1307::getRam() {
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write(0x08);
+    Wire.endTransmission();
+
+    Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+    for (uint8_t pos = 0; pos < 55; ++pos) {
+        ram[pos] = Wire.read();
+    }
+}
+
+bool DS1307::isStarted(){
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write((uint8_t)0x00);
+    Wire.endTransmission();
+    Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+    return !(bool)(Wire.read() & 0x80);       // bit 7 (sart/stop bit) = clock started    
+}

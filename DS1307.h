@@ -34,6 +34,7 @@
 #include <Arduino.h>
 
 #define DS1307_I2C_ADDRESS 0x68
+#define DS1307_RAM_OFFSET 0x08
 
 #define MON 1
 #define TUE 2
@@ -50,7 +51,6 @@ class DS1307 {
 
   public:
     void begin();
-    void begin(uint16_t SDA ,uint16_t SCL);
     void startClock(void);
     void stopClock(void);
     void setTime(void);
@@ -58,6 +58,11 @@ class DS1307 {
     void fillByHMS(uint8_t _hour, uint8_t _minute, uint8_t _second);
     void fillByYMD(uint16_t _year, uint8_t _month, uint8_t _day);
     void fillDayOfWeek(uint8_t _dow);
+    void setRamAddress(uint8_t _addr, uint8_t _value);
+    void setRam();
+    uint8_t getRamAddress(uint8_t _addr);
+    void getRam();
+    bool isStarted();
     uint8_t second;
     uint8_t minute;
     uint8_t hour;
@@ -65,6 +70,7 @@ class DS1307 {
     uint8_t dayOfMonth;
     uint8_t month;
     uint16_t year;
+    uint8_t ram[56];
 };
 
 #endif
