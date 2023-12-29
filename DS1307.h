@@ -51,6 +51,9 @@ class DS1307 {
 
   public:
     void begin();
+#ifndef Arduino_h
+    void begin(uint16_t SDA ,uint16_t SCL);
+#endif
     void startClock(void);
     void stopClock(void);
     void setTime(void);
