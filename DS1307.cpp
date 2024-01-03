@@ -40,12 +40,16 @@ uint8_t DS1307::bcdToDec(uint8_t val) {
     return ((val / 16 * 10) + (val % 16));
 }
 
+/**
+ * \brief          Start the I2C port
+ */
 void DS1307::begin() {
     Wire.begin();
 }
 
+#ifndef Arduino_h
 /**
- * \brief          The functio to start the I2C port with specified pins
+ * \brief          The function to start the I2C port with specified pins
  *                 
  * \param SDA      The pin number which is used as SDA pin
  * \param SCL      The pin number which is used as SCL pin
@@ -54,6 +58,7 @@ void DS1307::begin() {
 void DS1307::begin(uint16_t SDA ,uint16_t SCL) {
     Wire.begin(SDA,SCL);
 }
+#endif
 
 /*Function: The clock timing will start */
 void DS1307::startClock(void) {      // set the ClockHalt bit low to start the rtc
@@ -97,7 +102,7 @@ void DS1307::getTime() {
     year       = bcdToDec(Wire.read());
 }
 /*******************************************************************/
-/*Frunction: Write the time that includes the date to the RTC chip */
+/*Function: Write the time that includes the date to the RTC chip */
 void DS1307::setTime() {
     Wire.beginTransmission(DS1307_I2C_ADDRESS);
     Wire.write((uint8_t)0x00);
@@ -110,18 +115,114 @@ void DS1307::setTime() {
     Wire.write(decToBcd(year));
     Wire.endTransmission();
 }
+
+/**
+ * \brief          Set the time
+ *
+ * \param _hour    Hour between 0-23
+ * \param _minute  Minute between 0-59
+ * \param _second  Second between 0-59
+ *
+ */
 void DS1307::fillByHMS(uint8_t _hour, uint8_t _minute, uint8_t _second) {
     // assign variables
     hour = _hour;
     minute = _minute;
     second = _second;
 }
+
+/**
+ * \brief          Set the date 
+ *
+ * \param _year    Year: 2000-2099
+ * \param _month   Month: 1-12
+ * \param _day     Day: 1-31
+ *
+ */
 void DS1307::fillByYMD(uint16_t _year, uint8_t _month, uint8_t _day) {
     year = _year - 2000;
     month = _month;
     dayOfMonth = _day;
 }
+
+/**
+ * \brief          Sets the day of week. The increments at midnight.
+ *
+ * \param _dow     MON, TUE, WED, THU, FRI, SAT, SUN 
+ *
+ */
 void DS1307::fillDayOfWeek(uint8_t _dow) {
     dayOfWeek = _dow;
 }
 
+/**
+ * \brief          Save the contents of the RAM buffer to the DS1307
+ *                 
+ * \param _addr    The zero-index memory address (0-55)
+ * \param _value   The 8 bit value to store
+ *
+ */
+void DS1307::setRamAddress(uint8_t _addr, uint8_t _value) {
+    uint8_t address = _addr + DS1307_RAM_OFFSET;
+
+    ram[_addr] = _value;
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write(address);
+    Wire.write(_value);
+    Wire.endTransmission();
+
+}
+
+/**
+ * \brief          Save the contents of the RAM buffer to the DS1307
+ */
+void DS1307::setRam(){
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write(0x08);
+    for (uint8_t pos = 0; pos < 55; ++pos) {
+        Wire.write(ram[pos]);
+    }
+    Wire.endTransmission();
+}
+
+/**
+ * \brief          Get the contents of a specific address
+ *
+ * \param _addr    The address to retrieve
+ *
+ */
+uint8_t DS1307::getRamAddress(uint8_t _addr) {
+    uint8_t address = _addr + DS1307_RAM_OFFSET;
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write(address);
+    Wire.endTransmission();
+
+    Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+    ram[_addr] = Wire.read();
+    return ram[_addr];
+}
+
+/**
+ * \brief          Retrieve the contents of RAM to the ram buffer
+ */
+void DS1307::getRam() {
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write(0x08);
+    Wire.endTransmission();
+
+    Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+    for (uint8_t pos = 0; pos < 55; ++pos) {
+        ram[pos] = Wire.read();
+    }
+}
+
+/**
+ * \brief          Returns whether or not the clock is started
+ */
+bool DS1307::isStarted(){
+    Wire.beginTransmission(DS1307_I2C_ADDRESS);
+    Wire.write((uint8_t)0x00);
+    Wire.endTransmission();
+    Wire.requestFrom(DS1307_I2C_ADDRESS, 1);
+    return !(bool)(Wire.read() & 0x80);       // bit 7 (sart/stop bit) = clock started    
+}
